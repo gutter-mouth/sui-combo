@@ -36,6 +36,8 @@ const Page = () => {
     const tx = new TransactionBlock();
     for (const prop of data.blocks) {
       const { method, token, amount } = prop;
+
+      console.log({ tx, method, token, amount })
       moveCall({ tx, method, token, amount })
     }
     try {
@@ -56,10 +58,10 @@ const Page = () => {
                 <select
                   {...register(`blocks.${index}.method`)}
                 >
-                  <option>Deposit</option>
-                  {/* <option>Withdraw</option> */}
-                  <option>Borrow</option>
-                  {/* <option>Repay</option> */}
+                  <option value="deposit">Deposit</option>
+                  {/* <option value="withdraw">Withdraw</option> */}
+                  <option value="borrow">Borrow</option>
+                  {/* <option value="repay">Repay</option> */}
                 </select>
               </div>
               <div>
