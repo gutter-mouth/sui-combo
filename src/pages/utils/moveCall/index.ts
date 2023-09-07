@@ -1,0 +1,1 @@
+export { depositSUI, borrowSUI } from "./naviProtocol"
