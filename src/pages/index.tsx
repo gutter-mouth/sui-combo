@@ -4,17 +4,23 @@ import {
   ConnectButton
 } from '@suiet/wallet-kit';
 import { useForm, useFieldArray } from 'react-hook-form';
+import { moveCall } from './utils/moveCall';
+import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { useWallet } from '@suiet/wallet-kit';
 
 
 const inter = Inter({ subsets: ['latin'] })
 
 const blockDefaultValue = {
-  method: "Deposit",
+  method: "deposit",
   token: "SUI",
   amount: 0
 }
 
 const Page = () => {
+  const {
+    signAndExecuteTransactionBlock
+  } = useWallet();
   const { register, handleSubmit, control } = useForm(
     {
       defaultValues: {
@@ -26,8 +32,17 @@ const Page = () => {
     control,
   });
 
-  const onSubmit = (data: any) => {
-    console.log(data)
+  const onSubmit = async (data: any) => {
+    const tx = new TransactionBlock();
+    for (const prop of data.blocks) {
+      const { method, token, amount } = prop;
+      moveCall({ tx, method, token, amount })
+    }
+    try {
+      await signAndExecuteTransactionBlock({ transactionBlock: tx });
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const TxBlocks = () => {
@@ -41,10 +56,10 @@ const Page = () => {
                 <select
                   {...register(`blocks.${index}.method`)}
                 >
-                  <option>Deposit</option>
-                  <option>Withdraw</option>
-                  <option>Borrow</option>
-                  <option>Repay</option>
+                  <option value={"deposit"}>Deposit</option>
+                  <option value={"deposit"}>Withdraw</option>
+                  <option value={"borrow"}>Borrow</option>
+                  <option value={"repay"}>Repay</option>
                 </select>
               </div>
               <div>

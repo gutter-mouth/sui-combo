@@ -1,1 +1,1 @@
-export { depositSUI, borrowSUI } from "./naviProtocol"
+export { moveCall } from "./moveCall";
