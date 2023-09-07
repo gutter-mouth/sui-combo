@@ -42,9 +42,9 @@ const Page = () => {
                   {...register(`blocks.${index}.method`)}
                 >
                   <option>Deposit</option>
-                  <option>Withdraw</option>
+                  {/* <option>Withdraw</option> */}
                   <option>Borrow</option>
-                  <option>Repay</option>
+                  {/* <option>Repay</option> */}
                 </select>
               </div>
               <div>
@@ -53,8 +53,8 @@ const Page = () => {
                   {...register(`blocks.${index}.token`)}
                 >
                   <option>SUI</option>
-                  <option>USDT</option>
-                  <option>USDC</option>
+                  {/* <option>USDT</option>
+                  <option>USDC</option> */}
                 </select>
               </div>
               <div>
