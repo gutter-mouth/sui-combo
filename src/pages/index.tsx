@@ -4,8 +4,7 @@ import {
   ConnectButton
 } from '@suiet/wallet-kit';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { useState } from "react"
-import { depositSUI } from './utils/moveCall';
+
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -82,7 +81,7 @@ const Page = () => {
 
   return (
     <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
+      className={`min-h-screen ${inter.className}`}
     >
       <ConnectButton>Connect Buton</ConnectButton>
       <TxBlocks />
