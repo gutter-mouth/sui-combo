@@ -57,9 +57,10 @@ const Page = () => {
                   {...register(`blocks.${index}.method`)}
                 >
                   <option value={"deposit"}>Deposit</option>
-                  <option value={"deposit"}>Withdraw</option>
+                  <option value={"withdraw"}>Withdraw</option>
                   <option value={"borrow"}>Borrow</option>
                   <option value={"repay"}>Repay</option>
+                  <option value={"swap"}>Swap</option>
                 </select>
               </div>
               <div>
