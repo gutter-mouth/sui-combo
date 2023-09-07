@@ -4,7 +4,7 @@ import {
   ConnectButton
 } from '@suiet/wallet-kit';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { moveCall } from './utils/moveCall';
+import { moveCall } from '../utils/moveCall';
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { useWallet } from '@suiet/wallet-kit';
 
