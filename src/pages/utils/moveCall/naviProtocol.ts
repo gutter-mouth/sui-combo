@@ -1,8 +1,14 @@
 import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client';
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 
+export type NaviProps = {
+  tx: TransactionBlock;
+  token: "SUI" | "USDC" | "USDT";
+  amount: number;
+}
 
-export const depositSUI = (tx: TransactionBlock, amount: number) => {
+
+export const deposit = ({ tx, token, amount }: NaviProps) => {
   const [coin] = tx.splitCoins(tx.gas, [tx.pure(amount)])
   tx.moveCall({
     target: "0xd92bc457b42d48924087ea3f22d35fd2fe9afdf5bdfe38cc51c0f14f3282f6d5::lending::deposit",
@@ -19,7 +25,7 @@ export const depositSUI = (tx: TransactionBlock, amount: number) => {
   });
 }
 
-export const borrowSUI = (tx: TransactionBlock, amount: number) => {
+export const borrow = ({ tx, token, amount }: NaviProps) => {
   tx.moveCall({
     target: "0xd92bc457b42d48924087ea3f22d35fd2fe9afdf5bdfe38cc51c0f14f3282f6d5::lending::borrow",
     arguments: [
