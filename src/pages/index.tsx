@@ -92,7 +92,7 @@ const Page = () => {
                     </select>
                   </div>
                   <div className='flex items-center'>
-                    <input className='rounded-sm bg-gray-100 w-40 h-10 text-2xl p-2 mr-1' step={calcStepFromDecimals(decimalsFromType(watchBlocks[index].coinType) ?? 0)} {...register(`blocks.${index}.amount`)} type="number" />
+                    <input className='rounded-sm bg-gray-100 w-40 h-10 text-2xl p-2 mr-1' step={calcStepFromDecimals(decimalsFromType(watchBlocks[index].coinType) ?? 0)} {...register(`blocks.${index}.amount`)} type="number" min="0" />
                     <select className='text-xl rounded-3xl w-20 h-10 bg-gray-100 text-center'
                       {...register(`blocks.${index}.coinType`)}
                     >
