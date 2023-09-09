@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import {
   ConnectButton
@@ -8,19 +7,22 @@ import { moveCall } from '../utils/moveCall';
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { useWallet } from '@suiet/wallet-kit';
 
+import { useState, useEffect } from 'react';
+import { constCoins } from '@/utils/const';
 
+import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client';
+import type { CoinStruct } from '@mysten/sui.js/client';
 const inter = Inter({ subsets: ['latin'] })
+
 
 const blockDefaultValue = {
   method: "deposit",
-  token: "SUI",
+  coinType: "0x2::sui::SUI",
   amount: 0
 }
 
 const Page = () => {
-  const {
-    signAndExecuteTransactionBlock
-  } = useWallet();
+
   const { register, handleSubmit, control } = useForm(
     {
       defaultValues: {
@@ -32,19 +34,43 @@ const Page = () => {
     control,
   });
 
+  const {
+    account, signAndExecuteTransactionBlock
+  } = useWallet();
+
+  const [coinBalances, setCoinBalances] = useState<CoinStruct[]>([]);
+
+  useEffect(() => {
+    const client = new SuiClient({ url: getFullnodeUrl('mainnet') });
+    if (!account?.address) return;
+    constCoins.forEach(async (constCoin) => {
+      const coins = await client.getCoins({
+        owner: account.address,
+        coinType: constCoin.coinType
+      })
+      setCoinBalances((prev) => [...prev, ...coins.data])
+    })
+  }, [account?.address])
+
+  // console.log(coinBalances)
+
+
   const onSubmit = async (data: any) => {
+    if (!account?.address) return;
     const tx = new TransactionBlock();
     for (const prop of data.blocks) {
-      const { method, token, amount } = prop;
-
-      console.log({ tx, method, token, amount })
-      moveCall({ tx, method, token, amount })
+      const { method, coinType, amount } = prop;
+      console.log({ tx, method, balances: coinBalances, coinType, amount, recipient: account.address })
+      moveCall({ tx, method, coinType, amount, balances: coinBalances, recipient: account.address })
     }
     try {
-      await signAndExecuteTransactionBlock({ transactionBlock: tx });
+      await signAndExecuteTransactionBlock({
+        transactionBlock: tx
+      });
     } catch (e) {
       console.error(e)
     }
+    console.log(data)
   }
 
   const TxBlocks = () => {
@@ -59,19 +85,18 @@ const Page = () => {
                   {...register(`blocks.${index}.method`)}
                 >
                   <option value="deposit">Deposit</option>
-                  {/* <option value="withdraw">Withdraw</option> */}
+                  <option value="withdraw">Withdraw</option>
                   <option value="borrow">Borrow</option>
-                  {/* <option value="repay">Repay</option> */}
                 </select>
               </div>
               <div>
                 <label>Token</label>
                 <select
-                  {...register(`blocks.${index}.token`)}
+                  {...register(`blocks.${index}.coinType`)}
                 >
-                  <option>SUI</option>
-                  {/* <option>USDT</option>
-                  <option>USDC</option> */}
+                  {constCoins.map((constCoin) =>
+                    <option key={constCoin.coinType} value={constCoin.coinType}>{constCoin.coinName}</option>
+                  )}
                 </select>
               </div>
               <div>
@@ -107,5 +132,8 @@ const Page = () => {
     </main >
   )
 }
+
+
+
 
 export default Page;
