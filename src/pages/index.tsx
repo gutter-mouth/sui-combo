@@ -8,7 +8,7 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { useWallet } from '@suiet/wallet-kit';
 
 import { useState, useEffect } from 'react';
-import { constCoins } from '@/utils/const';
+import { constCoins, decimalsFromType } from '@/utils/const';
 
 import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client';
 import type { CoinStruct } from '@mysten/sui.js/client';
@@ -22,7 +22,7 @@ const blockDefaultValue = {
 }
 
 const Page = () => {
-  const { register, handleSubmit, control } = useForm(
+  const { register, handleSubmit, control, watch } = useForm(
     {
       defaultValues: {
         blocks: [blockDefaultValue],
@@ -32,6 +32,7 @@ const Page = () => {
     name: 'blocks',
     control,
   });
+  const watchBlocks = watch('blocks');
 
   const {
     account, signAndExecuteTransactionBlock
@@ -57,7 +58,9 @@ const Page = () => {
       const tx = new TransactionBlock();
       for (const prop of data.blocks) {
         const { method, coinType, amount } = prop;
-        moveCall({ tx, method, coinType, amount, balances: coinBalances, recipient: account.address })
+        const decimals = decimalsFromType(coinType);
+        if (!decimals) throw new Error('decimals not found');
+        moveCall({ tx, method, coinType, amount: amount * 10 ** decimals, balances: coinBalances, recipient: account.address })
       }
       await signAndExecuteTransactionBlock({
         transactionBlock: tx
@@ -65,7 +68,10 @@ const Page = () => {
     } catch (e) {
       console.error(e)
     }
-    console.log(data)
+  }
+
+  const calcStepFromDecimals = (decimals: number) => {
+    return "0." + "0".repeat(decimals - 1) + "1";
   }
 
   const TxBlocks = () => {
@@ -86,7 +92,7 @@ const Page = () => {
                     </select>
                   </div>
                   <div className='flex items-center'>
-                    <input className='rounded-sm bg-gray-100 w-40 h-10 text-3xl p-2 mr-1' {...register(`blocks.${index}.amount`)} type="number" />
+                    <input className='rounded-sm bg-gray-100 w-40 h-10 text-2xl p-2 mr-1' step={calcStepFromDecimals(decimalsFromType(watchBlocks[index].coinType) ?? 0)} {...register(`blocks.${index}.amount`)} type="number" min="0" />
                     <select className='text-xl rounded-3xl w-20 h-10 bg-gray-100 text-center'
                       {...register(`blocks.${index}.coinType`)}
                     >
