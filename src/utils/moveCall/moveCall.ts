@@ -8,11 +8,11 @@ export type MoveCallProps =
     method: "deposit" | "borrow" | "withdraw";
   };
 
-export const moveCall = ({ method, tx, balances, coinType, amount }: MoveCallProps) => {
+export const moveCall = ({ method, tx, coinType, amount, balances, recipient }: MoveCallProps) => {
   if (method === "deposit")
-    return deposit({ tx, balances, coinType, amount });
+    return deposit({ tx, coinType, amount, balances });
   if (method === "borrow")
     return borrow({ tx, coinType, amount });
   if (method === "withdraw")
-    return withdraw({ tx, coinType, amount });
+    return withdraw({ tx, coinType, amount, recipient });
 }

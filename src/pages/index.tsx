@@ -60,8 +60,8 @@ const Page = () => {
     const tx = new TransactionBlock();
     for (const prop of data.blocks) {
       const { method, coinType, amount } = prop;
-      console.log({ tx, method, balances: coinBalances, coinType, amount })
-      moveCall({ tx, method, balances: coinBalances, coinType, amount })
+      console.log({ tx, method, balances: coinBalances, coinType, amount, recipient: account.address })
+      moveCall({ tx, method, coinType, amount, balances: coinBalances, recipient: account.address })
     }
     try {
       await signAndExecuteTransactionBlock({
