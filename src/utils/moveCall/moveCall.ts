@@ -15,4 +15,5 @@ export const moveCall = ({ method, tx, coinType, amount, balances, recipient }: 
     return borrow({ tx, coinType, amount });
   if (method === "withdraw")
     return withdraw({ tx, coinType, amount, recipient });
+  throw new Error("Invalid method");
 }
