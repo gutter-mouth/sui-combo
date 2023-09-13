@@ -9,6 +9,7 @@ import { useWallet } from '@suiet/wallet-kit';
 
 import { useState, useEffect } from 'react';
 import { constCoins, decimalsFromType } from '@/utils/const';
+import { BsFillArrowDownCircleFill } from 'react-icons/bs'
 
 import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client';
 import type { CoinStruct } from '@mysten/sui.js/client';
@@ -18,6 +19,7 @@ const inter = Inter({ subsets: ['latin'] })
 const blockDefaultValue = {
   method: "deposit",
   coinType: "0x2::sui::SUI",
+  coinType2: "0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN",
   amount: 0
 }
 
@@ -89,6 +91,7 @@ const Page = () => {
                       <option value="deposit">Deposit</option>
                       <option value="withdraw">Withdraw</option>
                       <option value="borrow">Borrow</option>
+                      <option value="swap">Swap</option>
                     </select>
                   </div>
                   <div className='flex items-center'>
@@ -101,6 +104,21 @@ const Page = () => {
                       )}
                     </select>
                   </div>
+                  {watchBlocks[index].method === "swap" &&
+                    <div >
+                      <BsFillArrowDownCircleFill fontSize="24px" className="my-2 ml-16 text-gray-100" />
+                      <div className='flex items-center'>
+                        <input disabled className='rounded-sm bg-gray-100 w-40 h-10 text-2xl p-2 mr-1' value={0} type="number" min="0" />
+                        <select className='text-xl rounded-3xl w-20 h-10 bg-gray-100 text-center'
+                          {...register(`blocks.${index}.coinType2`)}
+                        >
+                          {constCoins.map((constCoin) =>
+                            <option key={constCoin.coinType} value={constCoin.coinType}>{constCoin.coinName}</option>
+                          )}
+                        </select>
+                      </div>
+                    </div>
+                  }
                 </div>
                 <button className='bg-gray-100 text-md ml-5 px-2 py-1 rounded-2xl' type="button" onClick={() => remove(index)}>
                   {"－"}
@@ -113,8 +131,8 @@ const Page = () => {
             </button>
             <button type="submit" className='bg-gray-100 text-xl py-1 px-3 rounded-2xl mt-2'>Send TX</button>
           </div>
-        </form>
-      </div>
+        </form >
+      </div >
     )
   }
 
