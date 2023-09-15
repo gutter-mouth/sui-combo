@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslit --fix .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@mysten/sui.js": "^0.41.1",
