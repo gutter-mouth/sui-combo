@@ -1,0 +1,10 @@
+.next
+yarn.lock
+package-lock.json
+public
+src/utils/apollo/generated.ts
+.eslintignore
+.prettierignore
+.husky
+hasura
+firebase-functions

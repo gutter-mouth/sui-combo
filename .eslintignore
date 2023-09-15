@@ -1,0 +1,4 @@
+src/utils/apollo/generated.ts
+src/utils/locales
+firebase-functions
+hasura

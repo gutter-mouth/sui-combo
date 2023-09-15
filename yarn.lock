@@ -3207,7 +3207,7 @@ eslint-visitor-keys@^3.3.0, eslint-visitor-keys@^3.4.1, eslint-visitor-keys@^3.4
 
 eslint@^8.49.0:
   version "8.49.0"
-  resolved "https://registry.npmjs.org/eslint/-/eslint-8.49.0.tgz#09d80a89bdb4edee2efcf6964623af1054bf6d42"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-8.49.0.tgz#09d80a89bdb4edee2efcf6964623af1054bf6d42"
   integrity sha512-jw03ENfm6VJI0jA9U+8H5zfl5b+FvuU3YYvZRdZHOlU2ggJkxrlkJH4HcDrZpj6YwD8kuYqvQM8LyesoazrSOQ==
   dependencies:
     "@eslint-community/eslint-utils" "^4.2.0"
