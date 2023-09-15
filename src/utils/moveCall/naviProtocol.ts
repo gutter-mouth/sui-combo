@@ -1,6 +1,6 @@
 import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client';
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { coinTypeFromName } from '../const';
+import { coinTypeFromName } from '../const/coin';
 
 import type { CoinStruct } from '@mysten/sui.js/client';
 export type NaviProps = {
