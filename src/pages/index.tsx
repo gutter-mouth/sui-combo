@@ -1,15 +1,15 @@
-import { Inter } from 'next/font/google'
-import {
-  ConnectButton
-} from '@suiet/wallet-kit';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
-import { moveCall } from '../utils/moveCall';
-import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { useWallet } from '@suiet/wallet-kit';
-import { useState, useEffect } from 'react';
 import { constCoins, decimalsFromType } from '@/utils/const/coin';
-import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client';
 import type { CoinStruct } from '@mysten/sui.js/client';
+import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client';
+import { TransactionBlock } from "@mysten/sui.js/transactions";
+import {
+  ConnectButton,
+  useWallet
+} from '@suiet/wallet-kit';
+import { Inter } from 'next/font/google';
+import { useEffect, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { moveCall } from '../utils/moveCall';
 
 import { TxCoiainer } from '@/components/TxContainer';
 const inter = Inter({ subsets: ['latin'] })
