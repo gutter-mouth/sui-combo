@@ -75,7 +75,7 @@ export const TxCoiainer = ({ index, control, register, remove }: TxCointerProps)
               <select className='text-xl rounded-3xl w-20 h-10 bg-gray-100 text-center'
                 {...register(`blocks.${index}.coinTypeOut`)}
               >
-                {constCoins.map((constCoin) =>
+                {constCoins.filter(constCoin => constCoin.coinType != watchCoinType).map((constCoin) =>
                   <option key={constCoin.coinType} value={constCoin.coinType}>{constCoin.coinName}</option>
                 )}
               </select>
