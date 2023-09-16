@@ -63,10 +63,12 @@ const Page = () => {
       if (!account?.address) return;
       let tx = new TransactionBlock();
       let currentCoinBalances = await fetchCoinBalances(account.address);
-      mergeAllCoins({ tx, balances: currentCoinBalances });
+      currentCoinBalances = mergeAllCoins({
+        tx,
+        balances: currentCoinBalances,
+      });
       for (let i = 0; i < data.blocks.length; i++) {
         const { method, coinType, coinTypeOut, amount } = data.blocks[i];
-
         const decimals = decimalsFromType(coinType);
         if (!decimals) throw new Error("decimals not found");
         const amountDecimal = Number(amount) * 10 ** decimals;
@@ -115,7 +117,10 @@ const Page = () => {
           if (i < data.blocks.length - 1) {
             tx = new TransactionBlock();
             currentCoinBalances = await fetchCoinBalances(account.address);
-            mergeAllCoins({ tx, balances: currentCoinBalances });
+            currentCoinBalances = mergeAllCoins({
+              tx,
+              balances: currentCoinBalances,
+            });
           }
         }
       }
