@@ -15,6 +15,7 @@ import {
   withdraw,
 } from "@/utils/moveCall/naviProtocol";
 import { mergeAllCoins } from "@/utils/moveCall/preProcess";
+import { ReactSVG } from "react-svg";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -159,8 +160,11 @@ const Page = () => {
 
   return (
     <main className={`min-h-screen ${inter.className}  bg-gray-900`}>
-      <div className="flex justify-end py-12 pr-12 mb-12">
+      <div className="flex justify-end py-12 pr-12">
         <ConnectButton>Connect Buton</ConnectButton>
+      </div>
+      <div className={"flex justify-center"}>
+        <ReactSVG src="uzushio.svg" className="w-36 mb-8 fill-gray-900" />
       </div>
       <div className="flex flex-col items-center">
         <TxContainers />

@@ -83,14 +83,16 @@ export const TxCoiainer = ({
       <div className="my-3 p-4 rounded-xl bg-gray-400">
         <div className="flex flex-flow">
           <select
+
             className="rounded-xl bg-gray-100 p-1 m-1 flex-grow h-8"
+
             {...register(`blocks.${index}.method`)}
           >
-            <option value="deposit">Deposit</option>
-            <option value="withdraw">Withdraw</option>
-            <option value="borrow">Borrow</option>
-            <option value="repay">Repay</option>
-            <option value="swap">Swap</option>
+            <option value="deposit">Deposit (NAVI)</option>
+            <option value="withdraw">Withdraw (NAVI)</option>
+            <option value="borrow">Borrow (NAVI)</option>
+            <option value="repay">Repay (NAVI)</option>
+            <option value="swap">Swap (Cetus)</option>
           </select>
           <div className="flex items-center m-2">
             balance:
