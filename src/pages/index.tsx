@@ -33,13 +33,20 @@ const Page = () => {
 
   useEffect(() => {
     if (!account?.address) return;
-    constCoins.forEach(async (constCoin) => {
-      const coins = await client.getCoins({
-        owner: account.address,
-        coinType: constCoin.coinType,
-      });
-      setCoinBalances((prev) => [...prev, ...coins.data]);
-    });
+    const func = async () => {
+      const balances = await Promise.all(
+        constCoins.map(async (constCoin) => {
+          const coins = await client.getCoins({
+            owner: account.address,
+            coinType: constCoin.coinType,
+          });
+          return coins.data;
+        }),
+      );
+
+      setCoinBalances(balances.flat());
+    };
+    func();
   }, [account?.address]);
 
   const onSubmit = async (data: any) => {
@@ -59,6 +66,7 @@ const Page = () => {
           recipient: account.address,
         });
       }
+      console.log(tx);
       await signAndExecuteTransactionBlock({
         transactionBlock: tx,
       });
