@@ -1,8 +1,9 @@
 import { constCoins, decimalsFromType } from "@/utils/const/coin";
-import { SuiClient, getFullnodeUrl } from "@mysten/sui.js/client";
+import { CoinStruct, SuiClient, getFullnodeUrl } from "@mysten/sui.js/client";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { ConnectButton, useWallet } from "@suiet/wallet-kit";
 import { Inter } from "next/font/google";
+import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 
 import { TxCoiainer } from "@/components/TxContainer";
@@ -34,6 +35,14 @@ const Page = () => {
   });
   const { fields, append, remove } = useFieldArray({ name: "blocks", control });
   const { account, signAndExecuteTransactionBlock } = useWallet();
+  const [balance, setBalance] = useState<CoinStruct[] | undefined>();
+
+  useEffect(() => {
+    if (!account?.address) return;
+    fetchCoinBalances(account?.address).then((res) => {
+      setBalance(res);
+    });
+  }, [account?.address]);
 
   const fetchCoinBalances = async (address: string) => {
     const balancesBatch = await Promise.all(
@@ -126,6 +135,7 @@ const Page = () => {
                 control={control}
                 register={register}
                 remove={remove}
+                balances={balance}
               />
             ))}
             <button
