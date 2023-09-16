@@ -1,7 +1,4 @@
-# 🌪️Uzushio🌪️ Leveraged position builder for LSD
-
-![2023-09-17_1 00 44](https://github.com/gutter-mouth/uzushio/assets/13897299/cf8ecd66-7dd0-46a0-8ca0-bc4f96254e47)<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0.00 0.00 792.00 578.00">
 <g stroke-width="2.00" fill="none" stroke-linecap="butt">
@@ -190,7 +187,7 @@
   L 732.18 495.03"
 />
 </g>
-<path fill="#ffffff" d="
+<path fill-opacity="0" d="
   M 0.00 0.00
   L 792.00 0.00
   L 792.00 578.00
@@ -532,38 +529,5 @@
   Z"
 />
 <rect fill="#3a81d2" x="613.26" y="464.52" width="29.74" height="92.98" rx="2.13"/>
-<rect fill="#ffffff" x="719.32" y="488.80" width="12.86" height="44.30" rx="6.23"/>
+<rect fill-opacity="0" x="719.32" y="488.80" width="12.86" height="44.30" rx="6.23"/>
 </svg>
-
-## **Assumption**
-
-In the context of LSD (Leveraged Staking Derivatives), there is an active pursuit of yield acquisition. Investors have devised a strategy that combines lending/swap as one of the methods to optimize yields, known as the spot leverage position construction strategy. This strategy involves depositing A → borrowing B → swapping B to A repeatedly. Due to the stability in the price changes of the currency pair, it is relatively safe to construct leverage positions.
-
-## **Challenge**
-
-To construct or unwind a spot leverage position, it is necessary to execute various transactions across multiple DApps, which can be cumbersome. When building an LSD leverage position, assuming Token A as LST and Token B as the native token, the following actions are required:
-
-- To construct a leverage position, you need to repeat the following multiple times:
-  - Hold Token A (e.g., stSui).
-  - Deposit Token A in Dapp X.
-  - Borrow Token B in Dapp X (e.g., Sui).
-  - Swap Token B to Token A in Dapp Y.
-- To unwind a leverage position, you need to repeat the following multiple times:
-  - Repay Token B in Dapp X.
-  - Withdraw Token A in Dapp X.
-  - Swap Token A to B in Dapp Y.
-
-**Solution/Features**
-
-- A tool that allows for the easy construction of spot leverage positions from a single UI.
-- An intuitive UI where users can add and remove transactions they want to execute.
-- By combining as many compatible transactions as possible, it reduces the number of signature steps compared to traditional methods.
-- The ability to execute a set of configured transactions with one click from the UI.
-
-**Future Feature Implementation**
-
-- Expanding the library of transaction templates.
-- Expanding support for DApps and transactions.
-- Integrating support for LST (Leveraged Staking Tokens).
-- Adding support for staking actions.
-- Implementing automatic distribution of stakes across multiple validators.

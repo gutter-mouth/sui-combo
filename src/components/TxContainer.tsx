@@ -83,9 +83,7 @@ export const TxCoiainer = ({
       <div className="my-3 p-4 rounded-xl bg-gray-400">
         <div className="flex flex-flow">
           <select
-
             className="rounded-xl bg-gray-100 p-1 m-1 flex-grow h-8"
-
             {...register(`blocks.${index}.method`)}
           >
             <option value="deposit">Deposit (NAVI)</option>
