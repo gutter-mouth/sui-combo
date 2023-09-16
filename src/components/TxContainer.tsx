@@ -1,4 +1,4 @@
-import { constCoins } from "@/utils/const/coin";
+import { constCoins, decimalsFromType } from "@/utils/const/coin";
 import { useEffect, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { BsFillArrowDownCircleFill } from "react-icons/bs";
@@ -10,11 +10,14 @@ import {
   floatToDecimals,
 } from "@/utils/tools/tools";
 
+import { CoinStruct } from "@mysten/sui.js/client";
+
 type TxCointerProps = {
   index: number;
   control: any;
   register: any;
   remove: any;
+  balances: CoinStruct[] | undefined;
 };
 
 export const TxCoiainer = ({
@@ -22,11 +25,11 @@ export const TxCoiainer = ({
   control,
   register,
   remove,
+  balances,
 }: TxCointerProps) => {
   const watchMethod = useWatch({ name: `blocks.${index}.method`, control });
   const watchAmount = useWatch({ name: `blocks.${index}.amount`, control });
   const watchCoinType = useWatch({ name: `blocks.${index}.coinType`, control });
-  console.log(watchCoinType);
   const watchCoinTypeOut = useWatch({
     name: `blocks.${index}.coinTypeOut`,
     control,
@@ -34,6 +37,25 @@ export const TxCoiainer = ({
 
   const [loading, setLoading] = useState<boolean>(false);
   const [amountOut, setAmountOut] = useState<number>(0);
+  const [selectedBalance, setselectedBalance] = useState<string | undefined>(
+    undefined,
+  );
+
+  const coinBalance = () => {
+    if (!balances) return;
+    balances.map((balance: CoinStruct) => {
+      if (balance.coinType === watchCoinType) {
+        const decimal = decimalsFromType(watchCoinType);
+        const adujstedBalance =
+          Math.round((Number(balance.balance) / 10 ** decimal!) * 100) / 100;
+        setselectedBalance(adujstedBalance.toString());
+      }
+    });
+  };
+
+  useEffect(() => {
+    coinBalance();
+  }, [watchCoinType]);
 
   useEffect(() => {
     if (watchMethod != "swap") return;
@@ -59,20 +81,28 @@ export const TxCoiainer = ({
   return (
     <div className="flex items-center">
       <div className="my-3 p-4 rounded-xl bg-gray-400">
-        <div>
+        <div className="flex flex-flow">
           <select
-            className="rounded-xl bg-gray-100"
+
+            className="rounded-xl bg-gray-100 p-1 m-1 flex-grow h-8"
+
             {...register(`blocks.${index}.method`)}
           >
-            <option value="deposit">Deposit</option>
-            <option value="withdraw">Withdraw</option>
-            <option value="borrow">Borrow</option>
-            <option value="swap">Swap</option>
+            <option value="deposit">Deposit (NAVI)</option>
+            <option value="withdraw">Withdraw (NAVI)</option>
+            <option value="borrow">Borrow (NAVI)</option>
+            <option value="repay">Repay (NAVI)</option>
+            <option value="swap">Swap (Cetus)</option>
           </select>
+          <div className="flex items-center m-2">
+            balance:
+            {selectedBalance}
+          </div>
         </div>
+
         <div className="flex items-center">
           <input
-            className="rounded-sm bg-gray-100 w-40 h-10 text-2xl p-2 mr-1"
+            className="rounded-sm bg-gray-100 w-40 h-10 text-2xl p-3 mr-2"
             {...register(`blocks.${index}.amount`)}
             type="number"
             step={calcStepFromCoinType(watchCoinType)}

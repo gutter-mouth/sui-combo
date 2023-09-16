@@ -1,14 +1,21 @@
 import { constCoins, decimalsFromType } from "@/utils/const/coin";
-import { SuiClient, getFullnodeUrl } from "@mysten/sui.js/client";
+import { CoinStruct, SuiClient, getFullnodeUrl } from "@mysten/sui.js/client";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { ConnectButton, useWallet } from "@suiet/wallet-kit";
 import { Inter } from "next/font/google";
+import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 
 import { TxCoiainer } from "@/components/TxContainer";
 import { swap } from "@/utils/cetus";
-import { borrow, deposit, withdraw } from "@/utils/moveCall/naviProtocol";
+import {
+  borrow,
+  deposit,
+  repay,
+  withdraw,
+} from "@/utils/moveCall/naviProtocol";
 import { mergeAllCoins } from "@/utils/moveCall/preProcess";
+import { ReactSVG } from "react-svg";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +36,14 @@ const Page = () => {
   });
   const { fields, append, remove } = useFieldArray({ name: "blocks", control });
   const { account, signAndExecuteTransactionBlock } = useWallet();
+  const [balance, setBalance] = useState<CoinStruct[] | undefined>();
+
+  useEffect(() => {
+    if (!account?.address) return;
+    fetchCoinBalances(account?.address).then((res) => {
+      setBalance(res);
+    });
+  }, [account?.address]);
 
   const fetchCoinBalances = async (address: string) => {
     const balancesBatch = await Promise.all(
@@ -70,6 +85,13 @@ const Page = () => {
             amount: amountDecimal,
             balances: currentCoinBalances,
           });
+        else if (method === "repay")
+          repay({
+            tx,
+            coinType,
+            amount: amountDecimal,
+            balances: currentCoinBalances,
+          });
         else if (method === "borrow")
           borrow({ tx, coinType, amount: amountDecimal });
         else if (method === "withdraw")
@@ -87,7 +109,6 @@ const Page = () => {
           method == "swap" ||
           i == data.blocks.length - 1
         ) {
-          console.log(tx);
           await signAndExecuteTransactionBlock({
             transactionBlock: tx,
           });
@@ -97,7 +118,6 @@ const Page = () => {
             mergeAllCoins({ tx, balances: currentCoinBalances });
           }
         }
-        console.log(tx);
       }
     } catch (e) {
       console.error(e);
@@ -116,6 +136,7 @@ const Page = () => {
                 control={control}
                 register={register}
                 remove={remove}
+                balances={balance}
               />
             ))}
             <button
@@ -139,8 +160,11 @@ const Page = () => {
 
   return (
     <main className={`min-h-screen ${inter.className}  bg-gray-900`}>
-      <div className="flex justify-end py-12 pr-12 mb-12">
+      <div className="flex justify-end py-12 pr-12">
         <ConnectButton>Connect Buton</ConnectButton>
+      </div>
+      <div className={"flex justify-center"}>
+        <ReactSVG src="uzushio.svg" className="w-36 mb-8 fill-gray-900" />
       </div>
       <div className="flex flex-col items-center">
         <TxContainers />
