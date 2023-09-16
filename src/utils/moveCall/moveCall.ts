@@ -1,5 +1,5 @@
-import { deposit, borrow, withdraw } from "./naviProtocol";
 import type { NaviProps } from "./naviProtocol";
+import { borrow, deposit, withdraw } from "./naviProtocol";
 
 export type MoveCallProps = NaviProps & {
   method: "deposit" | "borrow" | "withdraw";
@@ -17,5 +17,6 @@ export const moveCall = ({
   if (method === "borrow") return borrow({ tx, coinType, amount });
   if (method === "withdraw")
     return withdraw({ tx, coinType, amount, recipient });
+
   throw new Error("Invalid method");
 };

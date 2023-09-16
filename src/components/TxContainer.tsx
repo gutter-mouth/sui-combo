@@ -1,11 +1,14 @@
-import { useWatch } from "react-hook-form";
-import { useState, useEffect } from "react";
 import { constCoins } from "@/utils/const/coin";
+import { useEffect, useState } from "react";
+import { useWatch } from "react-hook-form";
 import { BsFillArrowDownCircleFill } from "react-icons/bs";
 
 import { preswap } from "@/utils/cetus";
-import { floatToDecimals, decimalsToFloat } from "@/utils/tools/tools";
-import { calcStepFromCoinType } from "@/utils/tools/tools";
+import {
+  calcStepFromCoinType,
+  decimalsToFloat,
+  floatToDecimals,
+} from "@/utils/tools/tools";
 
 type TxCointerProps = {
   index: number;
@@ -23,6 +26,7 @@ export const TxCoiainer = ({
   const watchMethod = useWatch({ name: `blocks.${index}.method`, control });
   const watchAmount = useWatch({ name: `blocks.${index}.amount`, control });
   const watchCoinType = useWatch({ name: `blocks.${index}.coinType`, control });
+  console.log(watchCoinType);
   const watchCoinTypeOut = useWatch({
     name: `blocks.${index}.coinTypeOut`,
     control,

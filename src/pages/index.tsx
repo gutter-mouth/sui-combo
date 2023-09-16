@@ -4,9 +4,10 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { ConnectButton, useWallet } from "@suiet/wallet-kit";
 import { Inter } from "next/font/google";
 import { useFieldArray, useForm } from "react-hook-form";
-import { moveCall } from "../utils/moveCall";
 
 import { TxCoiainer } from "@/components/TxContainer";
+import { swap } from "@/utils/cetus";
+import { moveCall } from "@/utils/moveCall";
 import { mergeAllCoins } from "@/utils/moveCall/preProcess";
 const inter = Inter({ subsets: ["latin"] });
 
@@ -48,17 +49,27 @@ const Page = () => {
       let currentCoinBalances = await fetchCoinBalances(account.address);
       mergeAllCoins({ tx, balances: currentCoinBalances });
       for (let i = 0; i < data.blocks.length; i++) {
-        const { method, coinType, amount } = data.blocks[i];
+        const { method, coinType, coinTypeOut, amount } = data.blocks[i];
         const decimals = decimalsFromType(coinType);
         if (!decimals) throw new Error("decimals not found");
-        moveCall({
-          tx,
-          method,
-          coinType,
-          amount: amount * 10 ** decimals,
-          balances: currentCoinBalances,
-          recipient: account.address,
-        });
+        if (method === "swap") {
+          await swap(
+            coinType,
+            coinTypeOut,
+            amount * 10 ** decimals,
+            currentCoinBalances,
+            tx,
+          );
+        } else {
+          moveCall({
+            tx,
+            method,
+            coinType,
+            amount: amount * 10 ** decimals,
+            balances: currentCoinBalances,
+            recipient: account.address,
+          });
+        }
         if (
           method == "withdraw" ||
           method == "borrow" ||
