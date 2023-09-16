@@ -7,8 +7,9 @@ import { useFieldArray, useForm } from "react-hook-form";
 
 import { TxCoiainer } from "@/components/TxContainer";
 import { swap } from "@/utils/cetus";
-import { moveCall } from "@/utils/moveCall";
+import { borrow, deposit, withdraw } from "@/utils/moveCall/naviProtocol";
 import { mergeAllCoins } from "@/utils/moveCall/preProcess";
+
 const inter = Inter({ subsets: ["latin"] });
 
 const blockDefaultValue = {
@@ -50,31 +51,43 @@ const Page = () => {
       mergeAllCoins({ tx, balances: currentCoinBalances });
       for (let i = 0; i < data.blocks.length; i++) {
         const { method, coinType, coinTypeOut, amount } = data.blocks[i];
+
         const decimals = decimalsFromType(coinType);
         if (!decimals) throw new Error("decimals not found");
+        const amountDecimal = Number(amount) * 10 ** decimals;
         if (method === "swap") {
           await swap(
             coinType,
             coinTypeOut,
-            amount * 10 ** decimals,
+            amountDecimal,
             currentCoinBalances,
             tx,
           );
-        } else {
-          moveCall({
+        } else if (method === "deposit")
+          deposit({
             tx,
-            method,
             coinType,
-            amount: amount * 10 ** decimals,
+            amount: amountDecimal,
             balances: currentCoinBalances,
+          });
+        else if (method === "borrow")
+          borrow({ tx, coinType, amount: amountDecimal });
+        else if (method === "withdraw")
+          withdraw({
+            tx,
+            coinType,
+            amount: amountDecimal,
             recipient: account.address,
           });
-        }
+        else throw new Error("method not found");
+
         if (
           method == "withdraw" ||
           method == "borrow" ||
+          method == "swap" ||
           i == data.blocks.length - 1
         ) {
+          console.log(tx);
           await signAndExecuteTransactionBlock({
             transactionBlock: tx,
           });

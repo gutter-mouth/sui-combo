@@ -9,6 +9,7 @@ export type MergeAllCoinsProps = {
 
 export const mergeAllCoins = ({ tx, balances }: MergeAllCoinsProps) => {
   constCoinTypes.forEach((coinType) => {
+    if (coinType === "0x2::sui::SUI") return;
     const coinObjectIds = balances
       ?.filter((balance) => balance.coinType === coinType)
       .map((balance) => balance.coinObjectId);
