@@ -538,7 +538,7 @@
 
 ## **Assumption**
 
-In the context of LSD (Leveraged Staking Derivatives), there is an active pursuit of yield acquisition. Investors have devised a strategy that combines lending/swap as one of the methods to optimize yields, known as the spot leverage position construction strategy(aka. grgr position costruction). This strategy involves depositing A → borrowing B → swapping B to A repeatedly. Due to the stability in the price changes of the currency pair, it is relatively safe to construct leverage positions.
+In the context of LSD (Leveraged Staking Derivatives), there is an active pursuit of yield acquisition. Investors have devised a strategy that combines lending/swap as one of the methods to optimize yields, known as the spot leverage position construction strategy. This strategy involves depositing A → borrowing B → swapping B to A repeatedly. Due to the stability in the price changes of the currency pair, it is relatively safe to construct leverage positions.
 
 ## **Challenge**
 
