@@ -1,135 +1,152 @@
-import { Inter } from 'next/font/google'
-import {
-  ConnectButton
-} from '@suiet/wallet-kit';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { moveCall } from '../utils/moveCall';
+import { constCoins, decimalsFromType } from "@/utils/const/coin";
+import { SuiClient, getFullnodeUrl } from "@mysten/sui.js/client";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { useWallet } from '@suiet/wallet-kit';
+import { ConnectButton, useWallet } from "@suiet/wallet-kit";
+import { Inter } from "next/font/google";
+import { useFieldArray, useForm } from "react-hook-form";
 
-import { useState, useEffect } from 'react';
-import { constCoins, decimalsFromType } from '@/utils/const';
+import { TxCoiainer } from "@/components/TxContainer";
+import { swap } from "@/utils/cetus";
+import { borrow, deposit, withdraw } from "@/utils/moveCall/naviProtocol";
+import { mergeAllCoins } from "@/utils/moveCall/preProcess";
 
-import { SuiClient, getFullnodeUrl } from '@mysten/sui.js/client';
-import type { CoinStruct } from '@mysten/sui.js/client';
-const inter = Inter({ subsets: ['latin'] })
-
+const inter = Inter({ subsets: ["latin"] });
 
 const blockDefaultValue = {
   method: "deposit",
   coinType: "0x2::sui::SUI",
-  amount: 0
-}
+  coinTypeOut:
+    "0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN",
+  amount: 0,
+};
 
+const client = new SuiClient({ url: getFullnodeUrl("mainnet") });
 const Page = () => {
-  const { register, handleSubmit, control, watch } = useForm(
-    {
-      defaultValues: {
-        blocks: [blockDefaultValue],
-      }
-    });
-  const { fields, append, remove } = useFieldArray({
-    name: 'blocks',
-    control,
+  const { register, handleSubmit, control } = useForm({
+    defaultValues: {
+      blocks: [blockDefaultValue],
+    },
   });
-  const watchBlocks = watch('blocks');
+  const { fields, append, remove } = useFieldArray({ name: "blocks", control });
+  const { account, signAndExecuteTransactionBlock } = useWallet();
 
-  const {
-    account, signAndExecuteTransactionBlock
-  } = useWallet();
-
-  const [coinBalances, setCoinBalances] = useState<CoinStruct[]>([]);
-
-  useEffect(() => {
-    const client = new SuiClient({ url: getFullnodeUrl('mainnet') });
-    if (!account?.address) return;
-    constCoins.forEach(async (constCoin) => {
-      const coins = await client.getCoins({
-        owner: account.address,
-        coinType: constCoin.coinType
-      })
-      setCoinBalances((prev) => [...prev, ...coins.data])
-    })
-  }, [account?.address])
+  const fetchCoinBalances = async (address: string) => {
+    const balancesBatch = await Promise.all(
+      constCoins.map(async (constCoin) => {
+        const coins = await client.getCoins({
+          owner: address,
+          coinType: constCoin.coinType,
+        });
+        return coins.data;
+      }),
+    );
+    return balancesBatch.flat();
+  };
 
   const onSubmit = async (data: any) => {
     try {
       if (!account?.address) return;
-      const tx = new TransactionBlock();
-      for (const prop of data.blocks) {
-        const { method, coinType, amount } = prop;
+      let tx = new TransactionBlock();
+      let currentCoinBalances = await fetchCoinBalances(account.address);
+      mergeAllCoins({ tx, balances: currentCoinBalances });
+      for (let i = 0; i < data.blocks.length; i++) {
+        const { method, coinType, coinTypeOut, amount } = data.blocks[i];
+
         const decimals = decimalsFromType(coinType);
-        if (!decimals) throw new Error('decimals not found');
-        moveCall({ tx, method, coinType, amount: amount * 10 ** decimals, balances: coinBalances, recipient: account.address })
+        if (!decimals) throw new Error("decimals not found");
+        const amountDecimal = Number(amount) * 10 ** decimals;
+        if (method === "swap") {
+          await swap(
+            coinType,
+            coinTypeOut,
+            amountDecimal,
+            currentCoinBalances,
+            tx,
+          );
+        } else if (method === "deposit")
+          deposit({
+            tx,
+            coinType,
+            amount: amountDecimal,
+            balances: currentCoinBalances,
+          });
+        else if (method === "borrow")
+          borrow({ tx, coinType, amount: amountDecimal });
+        else if (method === "withdraw")
+          withdraw({
+            tx,
+            coinType,
+            amount: amountDecimal,
+            recipient: account.address,
+          });
+        else throw new Error("method not found");
+
+        if (
+          method == "withdraw" ||
+          method == "borrow" ||
+          method == "swap" ||
+          i == data.blocks.length - 1
+        ) {
+          console.log(tx);
+          await signAndExecuteTransactionBlock({
+            transactionBlock: tx,
+          });
+          if (i < data.blocks.length - 1) {
+            tx = new TransactionBlock();
+            currentCoinBalances = await fetchCoinBalances(account.address);
+            mergeAllCoins({ tx, balances: currentCoinBalances });
+          }
+        }
+        console.log(tx);
       }
-      await signAndExecuteTransactionBlock({
-        transactionBlock: tx
-      });
     } catch (e) {
-      console.error(e)
+      console.error(e);
     }
-  }
+  };
 
-  const calcStepFromDecimals = (decimals: number) => {
-    return "0." + "0".repeat(decimals - 1) + "1";
-  }
-
-  const TxBlocks = () => {
+  const TxContainers = () => {
     return (
-      <div className='w-96 rounded-xl bg-gray-700' >
+      <div className="w-96 rounded-xl bg-gray-700">
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className='flex flex-col items-center py-5' >
+          <div className="flex flex-col items-center py-5">
             {fields.map((field, index) => (
-              <div key={field.id} className='flex items-center'>
-                <div key={field.id} className='my-3 p-4 rounded-xl bg-gray-400'>
-                  <div>
-                    <select className='rounded-xl bg-gray-100'
-                      {...register(`blocks.${index}.method`)}
-                    >
-                      <option value="deposit">Deposit</option>
-                      <option value="withdraw">Withdraw</option>
-                      <option value="borrow">Borrow</option>
-                    </select>
-                  </div>
-                  <div className='flex items-center'>
-                    <input className='rounded-sm bg-gray-100 w-40 h-10 text-2xl p-2 mr-1' step={calcStepFromDecimals(decimalsFromType(watchBlocks[index].coinType) ?? 0)} {...register(`blocks.${index}.amount`)} type="number" min="0" />
-                    <select className='text-xl rounded-3xl w-20 h-10 bg-gray-100 text-center'
-                      {...register(`blocks.${index}.coinType`)}
-                    >
-                      {constCoins.map((constCoin) =>
-                        <option key={constCoin.coinType} value={constCoin.coinType}>{constCoin.coinName}</option>
-                      )}
-                    </select>
-                  </div>
-                </div>
-                <button className='bg-gray-100 text-md ml-5 px-2 py-1 rounded-2xl' type="button" onClick={() => remove(index)}>
-                  {"－"}
-                </button>
-              </div>
+              <TxCoiainer
+                key={field.id}
+                index={index}
+                control={control}
+                register={register}
+                remove={remove}
+              />
             ))}
-
-            <button className='bg-gray-100 text-md my-3 px-2 py-1 rounded-3xl' type="button" onClick={() => append(blockDefaultValue)}>
+            <button
+              className="bg-gray-100 text-md my-3 px-2 py-1 rounded-3xl"
+              type="button"
+              onClick={() => append(blockDefaultValue)}
+            >
               {"＋"}
             </button>
-            <button type="submit" className='bg-gray-100 text-xl py-1 px-3 rounded-2xl mt-2'>Send TX</button>
+            <button
+              type="submit"
+              className="bg-gray-100 text-xl py-1 px-3 rounded-2xl mt-2"
+            >
+              Send TX
+            </button>
           </div>
         </form>
       </div>
-    )
-  }
+    );
+  };
 
   return (
-    <main
-      className={`min-h-screen ${inter.className}  bg-gray-900`}
-    >
-      <div className='flex justify-end py-12 pr-12 mb-12'>
+    <main className={`min-h-screen ${inter.className}  bg-gray-900`}>
+      <div className="flex justify-end py-12 pr-12 mb-12">
         <ConnectButton>Connect Buton</ConnectButton>
       </div>
-      <div className='flex flex-col items-center'>
-        <TxBlocks />
+      <div className="flex flex-col items-center">
+        <TxContainers />
       </div>
-    </main >
-  )
-}
+    </main>
+  );
+};
 
 export default Page;
