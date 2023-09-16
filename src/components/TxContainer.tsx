@@ -26,7 +26,6 @@ export const TxCoiainer = ({
   const watchMethod = useWatch({ name: `blocks.${index}.method`, control });
   const watchAmount = useWatch({ name: `blocks.${index}.amount`, control });
   const watchCoinType = useWatch({ name: `blocks.${index}.coinType`, control });
-  console.log(watchCoinType);
   const watchCoinTypeOut = useWatch({
     name: `blocks.${index}.coinTypeOut`,
     control,
@@ -67,6 +66,7 @@ export const TxCoiainer = ({
             <option value="deposit">Deposit</option>
             <option value="withdraw">Withdraw</option>
             <option value="borrow">Borrow</option>
+            <option value="repay">Repay</option>
             <option value="swap">Swap</option>
           </select>
         </div>

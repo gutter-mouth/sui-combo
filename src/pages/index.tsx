@@ -7,7 +7,12 @@ import { useFieldArray, useForm } from "react-hook-form";
 
 import { TxCoiainer } from "@/components/TxContainer";
 import { swap } from "@/utils/cetus";
-import { borrow, deposit, withdraw } from "@/utils/moveCall/naviProtocol";
+import {
+  borrow,
+  deposit,
+  repay,
+  withdraw,
+} from "@/utils/moveCall/naviProtocol";
 import { mergeAllCoins } from "@/utils/moveCall/preProcess";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -70,6 +75,13 @@ const Page = () => {
             amount: amountDecimal,
             balances: currentCoinBalances,
           });
+        else if (method === "repay")
+          repay({
+            tx,
+            coinType,
+            amount: amountDecimal,
+            balances: currentCoinBalances,
+          });
         else if (method === "borrow")
           borrow({ tx, coinType, amount: amountDecimal });
         else if (method === "withdraw")
@@ -87,7 +99,6 @@ const Page = () => {
           method == "swap" ||
           i == data.blocks.length - 1
         ) {
-          console.log(tx);
           await signAndExecuteTransactionBlock({
             transactionBlock: tx,
           });
@@ -97,7 +108,6 @@ const Page = () => {
             mergeAllCoins({ tx, balances: currentCoinBalances });
           }
         }
-        console.log(tx);
       }
     } catch (e) {
       console.error(e);
