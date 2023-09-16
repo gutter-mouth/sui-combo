@@ -6,9 +6,10 @@ import { ConnectButton, useWallet } from "@suiet/wallet-kit";
 import { Inter } from "next/font/google";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { moveCall } from "../utils/moveCall";
 
 import { TxCoiainer } from "@/components/TxContainer";
+import { swap } from "@/utils/cetus";
+import { moveCall } from "@/utils/moveCall";
 const inter = Inter({ subsets: ["latin"] });
 
 const blockDefaultValue = {
@@ -52,21 +53,34 @@ const Page = () => {
   const onSubmit = async (data: any) => {
     try {
       if (!account?.address) return;
+
       const tx = new TransactionBlock();
+
       for (const prop of data.blocks) {
-        const { method, coinType, amount } = prop;
+        const { method, coinType, amount, coinTypeOut } = prop;
         const decimals = decimalsFromType(coinType);
         if (!decimals) throw new Error("decimals not found");
-        moveCall({
-          tx,
-          method,
-          coinType,
-          amount: amount * 10 ** decimals,
-          balances: coinBalances,
-          recipient: account.address,
-        });
+
+        if (method === "swap") {
+          await swap(
+            coinType,
+            coinTypeOut,
+            amount * 10 ** decimals,
+            coinBalances,
+            tx,
+          );
+        } else {
+          moveCall({
+            tx,
+            method,
+            coinType,
+            amount: amount * 10 ** decimals,
+            balances: coinBalances,
+            recipient: account.address,
+          });
+        }
       }
-      console.log(tx);
+
       await signAndExecuteTransactionBlock({
         transactionBlock: tx,
       });
