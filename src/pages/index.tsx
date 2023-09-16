@@ -1,15 +1,15 @@
 import { constCoins, decimalsFromType } from "@/utils/const/coin";
-import type { CoinStruct } from "@mysten/sui.js/client";
 import { SuiClient, getFullnodeUrl } from "@mysten/sui.js/client";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { ConnectButton, useWallet } from "@suiet/wallet-kit";
 import { Inter } from "next/font/google";
-import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 
 import { TxCoiainer } from "@/components/TxContainer";
 import { swap } from "@/utils/cetus";
-import { moveCall } from "@/utils/moveCall";
+import { borrow, deposit, withdraw } from "@/utils/moveCall/naviProtocol";
+import { mergeAllCoins } from "@/utils/moveCall/preProcess";
+
 const inter = Inter({ subsets: ["latin"] });
 
 const blockDefaultValue = {
@@ -30,66 +30,81 @@ const Page = () => {
   const { fields, append, remove } = useFieldArray({ name: "blocks", control });
   const { account, signAndExecuteTransactionBlock } = useWallet();
 
-  const [coinBalances, setCoinBalances] = useState<CoinStruct[]>([]);
-
-  useEffect(() => {
-    if (!account?.address) return;
-    const func = async () => {
-      const balances = await Promise.all(
-        constCoins.map(async (constCoin) => {
-          const coins = await client.getCoins({
-            owner: account.address,
-            coinType: constCoin.coinType,
-          });
-          return coins.data;
-        }),
-      );
-
-      setCoinBalances(balances.flat());
-    };
-    func();
-  }, [account?.address]);
+  const fetchCoinBalances = async (address: string) => {
+    const balancesBatch = await Promise.all(
+      constCoins.map(async (constCoin) => {
+        const coins = await client.getCoins({
+          owner: address,
+          coinType: constCoin.coinType,
+        });
+        return coins.data;
+      }),
+    );
+    return balancesBatch.flat();
+  };
 
   const onSubmit = async (data: any) => {
     try {
       if (!account?.address) return;
+      let tx = new TransactionBlock();
+      let currentCoinBalances = await fetchCoinBalances(account.address);
+      mergeAllCoins({ tx, balances: currentCoinBalances });
+      for (let i = 0; i < data.blocks.length; i++) {
+        const { method, coinType, coinTypeOut, amount } = data.blocks[i];
 
-      const tx = new TransactionBlock();
-
-      for (const prop of data.blocks) {
-        const { method, coinType, amount, coinTypeOut } = prop;
         const decimals = decimalsFromType(coinType);
         if (!decimals) throw new Error("decimals not found");
-
+        const amountDecimal = Number(amount) * 10 ** decimals;
         if (method === "swap") {
           await swap(
             coinType,
             coinTypeOut,
-            amount * 10 ** decimals,
-            coinBalances,
+            amountDecimal,
+            currentCoinBalances,
             tx,
           );
-        } else {
-          moveCall({
+        } else if (method === "deposit")
+          deposit({
             tx,
-            method,
             coinType,
-            amount: amount * 10 ** decimals,
-            balances: coinBalances,
+            amount: amountDecimal,
+            balances: currentCoinBalances,
+          });
+        else if (method === "borrow")
+          borrow({ tx, coinType, amount: amountDecimal });
+        else if (method === "withdraw")
+          withdraw({
+            tx,
+            coinType,
+            amount: amountDecimal,
             recipient: account.address,
           });
-        }
-      }
+        else throw new Error("method not found");
 
-      await signAndExecuteTransactionBlock({
-        transactionBlock: tx,
-      });
+        if (
+          method == "withdraw" ||
+          method == "borrow" ||
+          method == "swap" ||
+          i == data.blocks.length - 1
+        ) {
+          console.log(tx);
+          await signAndExecuteTransactionBlock({
+            transactionBlock: tx,
+          });
+          if (i < data.blocks.length - 1) {
+            tx = new TransactionBlock();
+            currentCoinBalances = await fetchCoinBalances(account.address);
+            mergeAllCoins({ tx, balances: currentCoinBalances });
+          }
+        }
+        console.log(tx);
+      }
     } catch (e) {
       console.error(e);
     }
   };
 
-  const TxBlocks = () => {
+  const TxContainers = () => {
     return (
       <div className="w-96 rounded-xl bg-gray-700">
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -128,7 +143,7 @@ const Page = () => {
         <ConnectButton>Connect Buton</ConnectButton>
       </div>
       <div className="flex flex-col items-center">
-        <TxBlocks />
+        <TxContainers />
       </div>
     </main>
   );
