@@ -58,7 +58,6 @@ const Page = () => {
         tx,
         balances: currentCoinBalances,
       });
-      console.log(currentCoinBalances);
       for (let i = 0; i < data.blocks.length; i++) {
         const { method, coinType, coinTypeOut, amount } = data.blocks[i];
         const decimals = decimalsFromType(coinType);
@@ -103,7 +102,6 @@ const Page = () => {
           method == "swap" ||
           i == data.blocks.length - 1
         ) {
-          console.log(tx);
           await signAndExecuteTransactionBlock({
             transactionBlock: tx,
           });
