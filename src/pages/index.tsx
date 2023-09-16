@@ -1,14 +1,13 @@
 import { constCoins, decimalsFromType } from "@/utils/const/coin";
-import type { CoinStruct } from "@mysten/sui.js/client";
 import { SuiClient, getFullnodeUrl } from "@mysten/sui.js/client";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { ConnectButton, useWallet } from "@suiet/wallet-kit";
 import { Inter } from "next/font/google";
-import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { moveCall } from "../utils/moveCall";
 
 import { TxCoiainer } from "@/components/TxContainer";
+import { mergeAllCoins } from "@/utils/moveCall/preProcess";
 const inter = Inter({ subsets: ["latin"] });
 
 const blockDefaultValue = {
@@ -29,8 +28,6 @@ const Page = () => {
   const { fields, append, remove } = useFieldArray({ name: "blocks", control });
   const { account, signAndExecuteTransactionBlock } = useWallet();
 
-  const [coinBalances, setCoinBalances] = useState<CoinStruct[]>([]);
-
   const fetchCoinBalances = async (address: string) => {
     const balancesBatch = await Promise.all(
       constCoins.map(async (constCoin) => {
@@ -44,20 +41,12 @@ const Page = () => {
     return balancesBatch.flat();
   };
 
-  useEffect(() => {
-    if (!account?.address) return;
-    const func = async () => {
-      const balances = await fetchCoinBalances(account.address);
-      setCoinBalances(balances);
-    };
-    func();
-  }, [account?.address]);
-
   const onSubmit = async (data: any) => {
     try {
       if (!account?.address) return;
       let tx = new TransactionBlock();
-      let currentCoinBalances = [...coinBalances];
+      let currentCoinBalances = await fetchCoinBalances(account.address);
+      mergeAllCoins({ tx, balances: currentCoinBalances });
       for (let i = 0; i < data.blocks.length; i++) {
         const { method, coinType, amount } = data.blocks[i];
         const decimals = decimalsFromType(coinType);
@@ -81,6 +70,7 @@ const Page = () => {
           if (i < data.blocks.length - 1) {
             tx = new TransactionBlock();
             currentCoinBalances = await fetchCoinBalances(account.address);
+            mergeAllCoins({ tx, balances: currentCoinBalances });
           }
         }
         console.log(tx);
@@ -90,7 +80,7 @@ const Page = () => {
     }
   };
 
-  const TxBlocks = () => {
+  const TxContainers = () => {
     return (
       <div className="w-96 rounded-xl bg-gray-700">
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -129,7 +119,7 @@ const Page = () => {
         <ConnectButton>Connect Buton</ConnectButton>
       </div>
       <div className="flex flex-col items-center">
-        <TxBlocks />
+        <TxContainers />
       </div>
     </main>
   );

@@ -16,17 +16,11 @@ export const deposit = ({ tx, coinType, balances, amount }: NaviProps) => {
     .map((balance) => balance.coinObjectId);
   if (!coinObjectIds || coinObjectIds.length === 0)
     throw new Error("No balances");
-  let coinObject;
-  if (coinType === coinTypeFromName("SUI"))
-    coinObject = tx.splitCoins(tx.gas, [tx.pure(amount)])[0];
-  else {
-    if (coinObjectIds.length > 1)
-      tx.mergeCoins(
-        tx.object(coinObjectIds[0]),
-        coinObjectIds.slice(1).map((id) => tx.object(id)),
-      );
-    coinObject = tx.object(coinObjectIds[0]);
-  }
+  const coinObject =
+    coinType === coinTypeFromName("SUI")
+      ? tx.splitCoins(tx.gas, [tx.pure(amount)])[0]
+      : tx.object(coinObjectIds[0]);
+  console.log(coinObject);
   if (coinType === coinTypeFromName("SUI"))
     return tx.moveCall({
       target:
