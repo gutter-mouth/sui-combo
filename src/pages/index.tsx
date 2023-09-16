@@ -31,20 +31,24 @@ const Page = () => {
 
   const [coinBalances, setCoinBalances] = useState<CoinStruct[]>([]);
 
+  const fetchCoinBalances = async (address: string) => {
+    const balancesBatch = await Promise.all(
+      constCoins.map(async (constCoin) => {
+        const coins = await client.getCoins({
+          owner: address,
+          coinType: constCoin.coinType,
+        });
+        return coins.data;
+      }),
+    );
+    return balancesBatch.flat();
+  };
+
   useEffect(() => {
     if (!account?.address) return;
     const func = async () => {
-      const balances = await Promise.all(
-        constCoins.map(async (constCoin) => {
-          const coins = await client.getCoins({
-            owner: account.address,
-            coinType: constCoin.coinType,
-          });
-          return coins.data;
-        }),
-      );
-
-      setCoinBalances(balances.flat());
+      const balances = await fetchCoinBalances(account.address);
+      setCoinBalances(balances);
     };
     func();
   }, [account?.address]);
@@ -52,9 +56,10 @@ const Page = () => {
   const onSubmit = async (data: any) => {
     try {
       if (!account?.address) return;
-      const tx = new TransactionBlock();
-      for (const prop of data.blocks) {
-        const { method, coinType, amount } = prop;
+      let tx = new TransactionBlock();
+      let currentCoinBalances = [...coinBalances];
+      for (let i = 0; i < data.blocks.length; i++) {
+        const { method, coinType, amount } = data.blocks[i];
         const decimals = decimalsFromType(coinType);
         if (!decimals) throw new Error("decimals not found");
         moveCall({
@@ -62,14 +67,24 @@ const Page = () => {
           method,
           coinType,
           amount: amount * 10 ** decimals,
-          balances: coinBalances,
+          balances: currentCoinBalances,
           recipient: account.address,
         });
+        if (
+          method == "withdraw" ||
+          method == "borrow" ||
+          i == data.blocks.length - 1
+        ) {
+          await signAndExecuteTransactionBlock({
+            transactionBlock: tx,
+          });
+          if (i < data.blocks.length - 1) {
+            tx = new TransactionBlock();
+            currentCoinBalances = await fetchCoinBalances(account.address);
+          }
+        }
+        console.log(tx);
       }
-      console.log(tx);
-      await signAndExecuteTransactionBlock({
-        transactionBlock: tx,
-      });
     } catch (e) {
       console.error(e);
     }
