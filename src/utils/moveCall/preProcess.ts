@@ -1,6 +1,6 @@
 import type { CoinStruct } from "@mysten/sui.js/client";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { constCoinTypes } from "../const/coin";
+import { coinTypeFromName, constCoinTypes } from "../const/coin";
 
 export type MergeAllCoinsProps = {
   tx: TransactionBlock;
@@ -8,15 +8,27 @@ export type MergeAllCoinsProps = {
 };
 
 export const mergeAllCoins = ({ tx, balances }: MergeAllCoinsProps) => {
-  constCoinTypes.forEach((coinType) => {
-    if (coinType === "0x2::sui::SUI") return;
-    const coinObjectIds = balances
-      ?.filter((balance) => balance.coinType === coinType)
-      .map((balance) => balance.coinObjectId);
-    if (coinObjectIds && coinObjectIds.length > 1)
-      tx.mergeCoins(
-        tx.object(coinObjectIds[0]),
-        coinObjectIds.slice(1).map((id) => tx.object(id)),
-      );
+  const afterBalancesBatch = constCoinTypes.map((coinType) => {
+    const filteredBalances = balances?.filter(
+      (balance) => balance.coinType === coinType,
+    );
+    if (
+      coinType === coinTypeFromName("SUI") ||
+      !filteredBalances ||
+      filteredBalances?.length < 2
+    )
+      return filteredBalances;
+    const coinObjectIds = filteredBalances.map(
+      (balance) => balance.coinObjectId,
+    );
+    tx.mergeCoins(
+      tx.object(coinObjectIds[0]),
+      coinObjectIds.slice(1).map((id) => tx.object(id)),
+    );
+    return filteredBalances[0];
   });
+  const afterBalances = afterBalancesBatch
+    .flat()
+    .filter((balance) => balance) as CoinStruct[];
+  return afterBalances;
 };
